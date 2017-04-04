@@ -518,8 +518,14 @@ def classify_many():
     top1_accuracy = None
     top5_accuracy = None
     confusion_matrix = None
+    total_prediction = None
+    true_positives = None
+    total_positives = None
     per_class_accuracy = None
+    per_class_precision = None
     labels = None
+    precision = None
+    fmeasure = None
 
     if outputs is not None:
         # convert to class probabilities for viewing
@@ -544,6 +550,11 @@ def classify_many():
 
         # compute classifications and statistics
         classifications = []
+        total_prediction = []
+        true_positives = []
+        total_positives = []
+        per_class_precision = []
+        fmeasure = []
         n_top1_accurate = 0
         n_top5_accurate = 0
         confusion_matrix = np.zeros((n_labels, n_labels), dtype=np.dtype(int))
@@ -566,19 +577,45 @@ def classify_many():
             classifications.append(result)
 
         # accuracy
+        for x in xrange(n_labels):
+        	total_prediction.append(0)
         if show_ground_truth:
             top1_accuracy = round(100.0 * n_top1_accurate / n_ground_truth, 2)
             top5_accuracy = round(100.0 * n_top5_accurate / n_ground_truth, 2)
             per_class_accuracy = []
+            per_class_precision = []
+            
             for x in xrange(n_labels):
                 n_examples = sum(confusion_matrix[x])
+                total_positives.append(n_examples);
+                true_positives.append(confusion_matrix[x][x])
+                
+                for y in xrange(n_labels):
+                	total_prediction[y] = total_prediction[y] + confusion_matrix[x][y]
                 per_class_accuracy.append(
                     round(100.0 * confusion_matrix[x, x] / n_examples, 2) if n_examples > 0 else None)
+                    
+            #Calc precision and F-measure
+            for x in xrange(n_labels):
+		per_class_precision.append(round(100.0 * true_positives[x] / total_prediction[x], 2))
+		
+		#F-measure = 2 x ( (precision x recall) / (precision + recall) )
+		fmeasure.append((2 * per_class_precision[x] * per_class_accuracy[x])/(per_class_precision[x] + per_class_accuracy[x]))
         else:
             top1_accuracy = None
             top5_accuracy = None
             per_class_accuracy = None
-
+            per_class_precision = None
+            total_prediction = None
+            total_positives = None
+            true_positives = None
+            fmeasure = None
+		
+	
+	#print total_prediction
+	#print total_positives
+	#print true_positives
+	#print per_class_precision
         # replace ground truth indices with labels
         ground_truths = [labels[x] if x is not None and (0 <= x < n_labels) else None for x in ground_truths]
 
@@ -597,6 +634,8 @@ def classify_many():
                                      top5_accuracy=top5_accuracy,
                                      confusion_matrix=confusion_matrix,
                                      per_class_accuracy=per_class_accuracy,
+                                     per_class_precision=per_class_precision,
+                                     fmeasure=fmeasure,
                                      labels=labels,
                                      ), status_code
 
