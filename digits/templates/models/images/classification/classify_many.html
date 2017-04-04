@@ -55,6 +55,8 @@
                 <th>{{label}}</th>
             {% endfor %}
             <th>Per-class accuracy</th>
+            <th>Precision</th>
+            <th>F-measure</th>
         </tr>
         {% for row in confusion_matrix %}
             {% set label_idx = loop.index0 %}
@@ -66,6 +68,8 @@
                     <td>{{column}}</td>
                 {% endfor %}
                 <td>{{per_class_accuracy[label_idx]}}%</td>
+                <td>{{per_class_precision[label_idx]}}%</td>
+                <td>{{fmeasure[label_idx]}}</td>
             </tr>
             {% endif %}
         {% endfor %}
